@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  app:
+    container_name: app
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    command: >
+      bash -c "sleep 10 && yes | php yii migrate --migrationPath=@yii/rbac/migrations &&
+      yes | php yii migrate &&
+      php yii rbac/init &&
+      php -S 0.0.0.0:3000 -t web"
+    ports:
+      - 5000:3000
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    restart: always
+    env_file: ../.env
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
